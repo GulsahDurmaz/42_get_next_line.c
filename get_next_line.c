@@ -9,23 +9,29 @@ char *find_the_end(char *s)
 {
     char    *s_new;
     int i;
-
+  
     i = 0;
-    s_new = malloc(BUFFER_SIZE);
-    while (s[i] != '\n' || s[i] != '\0')
-        s_new[i] = s[i];
-        i++;
+    s_new = malloc((BUFFER_SIZE + 1) * sizeof(char));
+    if (!s_new)
+        return (NULL);
+   while (s[i] != '\n' && s[i] != '\0')
+    {
+      s_new[i] = s[i];
+      i++;
+    }
+    s_new[i] = '\0';
     return (s_new);
 }
+
 char *get_next_line(int fd)
 {
     char *buff;
-    char *linee;
-    int len;
+    static char *line;
 
     buff = (char *)malloc(BUFFER_SIZE);
     read(fd, buff, BUFFER_SIZE);
-    return(buff);
+    line = find_the_end(buff);
+    return(line);
 }
 
 int main()
@@ -34,10 +40,10 @@ int main()
     int fd;
 
     fd = open("test_01", O_RDONLY);
+    if (fd < 0 || BUFFER_SIZE <= 0)
+	    return (0);    
     line = get_next_line(fd);
 
-//  read(fd, buff, 10);
-//   write(1, line, 10);
     printf("%s \n", line);
     return(0);
 }
