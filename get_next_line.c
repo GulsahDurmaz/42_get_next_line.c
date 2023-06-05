@@ -3,18 +3,29 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#  define BUFFER_SIZE 1000
+#  define BUFFER_SIZE 100
 
-char *find_the_end(char *s)
+int len_line(char *line)
+{
+    int len;
+
+    len = 0;
+    if (line && line[len] == '\n')
+		len++;
+    return (len);
+}
+char *find_the_end(int fd, char *s)
 {
     char    *s_new;
+    int len;
     int i;
-  
-    i = 0;
-    s_new = malloc((BUFFER_SIZE + 1) * sizeof(char));
+
+    len = len_line(s);  
+    s_new = malloc((len + 1) * sizeof(char));
     if (!s_new)
         return (NULL);
-   while (s[i] != '\n' && s[i] != '\0')
+    i = 0;
+    while (s[i] != '\n' && s[i] != '\0')
     {
       s_new[i] = s[i];
       i++;
@@ -25,12 +36,14 @@ char *find_the_end(char *s)
 
 char *get_next_line(int fd)
 {
-    char *buff;
-    static char *line;
+    static char *buff;
+    char *line;
+    int buffer_size;
 
     buff = (char *)malloc(BUFFER_SIZE);
     read(fd, buff, BUFFER_SIZE);
-    line = find_the_end(buff);
+    line = find_the_end(fd, buff);
+    free(buff);
     return(line);
 }
 
@@ -43,8 +56,15 @@ int main()
     if (fd < 0 || BUFFER_SIZE <= 0)
 	    return (0);    
     line = get_next_line(fd);
-
     printf("%s \n", line);
+    line = get_next_line(fd);
+    printf("%s \n", line);
+    line = get_next_line(fd);
+    printf("%s \n", line);
+    line = get_next_line(fd);
+    printf("%s \n", line);
+    
+
     return(0);
 }
 /*
