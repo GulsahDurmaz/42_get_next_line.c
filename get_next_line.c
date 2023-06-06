@@ -3,18 +3,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#  define BUFFER_SIZE 100
+#  define BUFFER_SIZE 40
 
 int len_line(char *line)
 {
     int len;
 
     len = 0;
-    if (line && line[len] == '\n')
+    while (line && line[len] != '\n' && line[len] != '\0')
 		len++;
     return (len);
 }
-char *find_the_end(int fd, char *s)
+
+char *find_the_end(char *s)
 {
     char    *s_new;
     int len;
@@ -33,16 +34,40 @@ char *find_the_end(int fd, char *s)
     s_new[i] = '\0';
     return (s_new);
 }
+char *make_line(char *s)
+{
+    char *buff;
+    int last_char;
+    int i;
 
+    last_char = len_line(s);
+    buff = (char *)malloc(last_char + 1);
+    if (!buff)
+	    return (0);
+//    line = find_the_end(buff);
+    i = 0;
+    while (i < last_char)
+    {
+      buff[i] = s[i];
+      i++;
+    }
+    buff[i] = '\0';
+    return (buff);
+}
 char *get_next_line(int fd)
 {
     static char *buff;
     char *line;
-    int buffer_size;
+    int last_char;
 
-    buff = (char *)malloc(BUFFER_SIZE);
-    read(fd, buff, BUFFER_SIZE);
-    line = find_the_end(fd, buff);
+    buff = (char *)malloc(BUFFER_SIZE + 1);
+    if (!buff)
+	    return (0);
+//    line = find_the_end(buff);
+
+    last_char = read(fd, buff, BUFFER_SIZE);
+    line = find_the_end(buff);
+    line = make_line(line);
     free(buff);
     return(line);
 }
@@ -51,16 +76,15 @@ int main()
 {
     char    *line;
     int fd;
+    int i;
 
-    fd = open("test_01", O_RDONLY);
+    fd = open("test_01.txt", O_RDONLY);
     if (fd < 0 || BUFFER_SIZE <= 0)
 	    return (0);    
     line = get_next_line(fd);
+    i = len_line(line);
     printf("%s \n", line);
-    line = get_next_line(fd);
-    printf("%s \n", line);
-    line = get_next_line(fd);
-    printf("%s \n", line);
+    printf("%d \n", i);
     line = get_next_line(fd);
     printf("%s \n", line);
     
