@@ -1,125 +1,188 @@
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gdurmaz <gdurmaz@42.fr>                    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/06/10 14:02:41 by gdurmaz           #+#    #+#             */
+/*   Updated: 2023/06/21 15:56:52 by gdurmaz          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-#  define BUFFER_SIZE 40
+#include "get_next_line.h"
 
-int len_line(char *line)
+static char	*free_stash(char **stash)
 {
-    int len;
+	if (*stash)
+	{
+		free(*stash);
+		*stash = NULL;
+	}
+	return (NULL);
+}
 
-    len = 0;
-    while (line && line[len] != '\n' && line[len] != '\0')
+char	*get_line(char *stash)
+{
+	char	*printed_line;
+	int		len;
+
+	len = 0;
+	if (!stash)
+		return (0);
+	while (stash[len] != '\n')
 		len++;
-    return (len);
+	printed_line = (char *)malloc(len + 2);
+	if (!printed_line)
+		return (0);
+	len = 0;
+	while (stash[len] != '\n' && stash[len])
+	{
+		printed_line[len] = stash[len];
+		len++;
+	}
+	if (stash[len] == '\n')
+	{
+		printed_line[len] = '\n';
+		printed_line[len + 1] = '\0';
+	}
+	else
+		printed_line[len] = '\0';
+	return (printed_line);
 }
 
-char *find_the_end(char *s)
+char	*clean_remaining(char *stash)
 {
-    char    *s_new;
-    int len;
-    int i;
+	char	*remaining_text;
+	int		i;
+	int		j;
 
-    len = len_line(s);  
-    s_new = malloc((len + 1) * sizeof(char));
-    if (!s_new)
-        return (NULL);
-    i = 0;
-    while (s[i] != '\n' && s[i] != '\0')
-    {
-      s_new[i] = s[i];
-      i++;
-    }
-    s_new[i] = '\0';
-    return (s_new);
-}
-char *make_line(char *s)
-{
-    char *buff;
-    int last_char;
-    int i;
-
-    last_char = len_line(s);
-    buff = (char *)malloc(last_char + 1);
-    if (!buff)
-	    return (0);
-//    line = find_the_end(buff);
-    i = 0;
-    while (i < last_char)
-    {
-      buff[i] = s[i];
-      i++;
-    }
-    buff[i] = '\0';
-    return (buff);
-}
-char *get_next_line(int fd)
-{
-    static char *buff;
-    char *line;
-    int last_char;
-
-    buff = (char *)malloc(BUFFER_SIZE + 1);
-    if (!buff)
-	    return (0);
-//    line = find_the_end(buff);
-
-    last_char = read(fd, buff, BUFFER_SIZE);
-    line = find_the_end(buff);
-    line = make_line(line);
-    free(buff);
-    return(line);
+	if (!stash)
+		return (0);
+	i = 0;
+	while (stash[i] && stash[i] != '\n')
+		i++;
+	if (!stash[i])
+		return (0);
+	remaining_text = (char *)malloc(ft_strlen(stash) - i + 1);
+	if (!remaining_text)
+		return (0);
+	j = 0;
+	while (stash[i])
+	{
+		remaining_text[j] = stash[i + 1];
+		i++;
+		j++;
+	}
+	remaining_text[j] = '\0';
+	free(stash);
+	return (remaining_text);
 }
 
-int main()
+char	*read_file(int fd, char *stash)
 {
-    char    *line;
+	char	*buffer;
+	ssize_t	bytes_read;
+
+	bytes_read = 1;
+	buffer = malloc((BUFFER_SIZE + 1) * sizeof(char));
+	if (!buffer)
+		return (0);
+	while (!ft_strchr(stash, '\n') && bytes_read != 0)
+	{
+		bytes_read = read(fd, buffer, BUFFER_SIZE);
+		if (bytes_read < 0)
+		{
+			free(buffer);
+			free(stash);
+			return (0);
+		}
+		buffer[bytes_read] = '\0';
+		stash = ft_strjoin(stash, buffer);
+	}
+	free(buffer);
+	return (stash);
+}
+
+char	*get_next_line(int fd)
+{
+	static char	*stash;
+	char		*printed_line;
+
+	if (fd < 0 || BUFFER_SIZE <= 0)
+		return (NULL);
+	stash = read_file(fd, stash);
+	if (!stash)
+		return (NULL);
+	printed_line = get_line(stash);
+	stash = clean_remaining(stash);
+	return (printed_line);
+}
+
+int main() 
+{
     int fd;
     int i;
+    char *next_line;
 
-    fd = open("test_01.txt", O_RDONLY);
-    if (fd < 0 || BUFFER_SIZE <= 0)
-	    return (0);    
-    line = get_next_line(fd);
-    i = len_line(line);
-    printf("%s \n", line);
-    printf("%d \n", i);
-    line = get_next_line(fd);
-    printf("%s \n", line);
-    
-
-    return(0);
+    fd = open("test.txt", O_RDONLY);
+    if (fd < 0) 
+    {
+        printf("Failed to open the file.\n");
+        return (1);
+    }
+	i = 1;
+	next_line = get_next_line(fd);
+    printf("Read line_%d: %s \n", i, next_line);
+	i++;
+	next_line = get_next_line(fd);
+    printf("Read line_%d: %s \n", i, next_line);
+	i++;
+	next_line = get_next_line(fd);
+    printf("Read line_%d: %s \n", i, next_line);
+	i++;
+	next_line = get_next_line(fd);
+    printf("Read line_%d: %s \n", i, next_line);
+	i++;
+	next_line = get_next_line(fd);
+    printf("Read line_%d: %s \n", i, next_line);
+	i++;
+	next_line = get_next_line(fd);
+    printf("Read line_%d: %s \n", i, next_line);
+	i++;
+	next_line = get_next_line(fd);
+    printf("Read line_%d: %s \n", i, next_line);
+	i++;
+	next_line = get_next_line(fd);
+    printf("Read line_%d: %s \n", i, next_line);
+	i++;
+	next_line = get_next_line(fd);
+    printf("Read line_%d: %s \n", i, next_line);
+	i++;
+	next_line = get_next_line(fd);
+    printf("Read line_%d: %s \n", i, next_line);
+	i++;
+	next_line = get_next_line(fd);
+    printf("Read line_%d: %s \n", i, next_line);
+	i++;
+	next_line = get_next_line(fd);
+    printf("Read line_%d: %s \n", i, next_line);
+	i++;
+	next_line = get_next_line(fd);
+    printf("Read line_%d: %s \n", i, next_line);
+	i++;
+	
+	/*
+    i = 0;
+	while (i < 30) 
+    {
+        i++;
+		next_line = get_next_line(fd);
+        printf("Read line_%d: %s \n", i, next_line);
+    }
+	*/
+    if(next_line)
+        free(next_line);
+    close (fd);
+    return (0);
 }
-/*
-    #include <unistd.h>
-    ssize_t read(int fd, void *buf, size_t count);
-
-    DESCRIPTION         top
-
-       read() attempts to read up to count bytes from file descriptor fd
-       into the buffer starting at buf.
-
-       On files that support seeking, the read operation commences at
-       the file offset, and the file offset is incremented by the number
-       of bytes read.  If the file offset is at or past the end of file,
-       no bytes are read, and read() returns zero.
-
-       If count is zero, read() may detect the errors described below.
-       In the absence of any errors, or if read() does not check for
-       errors, a read() with a count of 0 returns zero and has no other
-       effects.
-
-       According to POSIX.1, if count is greater than SSIZE_MAX, the
-       result is implementation-defined; see NOTES for the upper limit
-       on Linux.
-
-    The types size_t and ssize_t are, respectively, unsigned and
-    signed integer data types specified by POSIX.1.
-
-    #include <fcntl.h>
-
-       int open(const char *pathname, int flags);
-
-
-*/
