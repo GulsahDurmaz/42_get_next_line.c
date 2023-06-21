@@ -6,12 +6,12 @@
 /*   By: gdurmaz <gdurmaz@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/10 14:02:41 by gdurmaz           #+#    #+#             */
-/*   Updated: 2023/06/21 15:56:52 by gdurmaz          ###   ########.fr       */
+/*   Updated: 2023/06/21 16:27:57 by gdurmaz          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
-
+/*
 static char	*free_stash(char **stash)
 {
 	if (*stash)
@@ -21,7 +21,7 @@ static char	*free_stash(char **stash)
 	}
 	return (NULL);
 }
-
+*/
 char	*get_line(char *stash)
 {
 	char	*printed_line;
@@ -30,7 +30,7 @@ char	*get_line(char *stash)
 	len = 0;
 	if (!stash)
 		return (0);
-	while (stash[len] != '\n')
+	while (stash[len] != '\n' && stash[len])
 		len++;
 	printed_line = (char *)malloc(len + 2);
 	if (!printed_line)
@@ -63,17 +63,17 @@ char	*clean_remaining(char *stash)
 	while (stash[i] && stash[i] != '\n')
 		i++;
 	if (!stash[i])
+	{
+		free (stash);
 		return (0);
+	}
 	remaining_text = (char *)malloc(ft_strlen(stash) - i + 1);
 	if (!remaining_text)
 		return (0);
 	j = 0;
+	i++;
 	while (stash[i])
-	{
-		remaining_text[j] = stash[i + 1];
-		i++;
-		j++;
-	}
+		remaining_text[j++] = stash[i++];
 	remaining_text[j] = '\0';
 	free(stash);
 	return (remaining_text);
@@ -82,7 +82,7 @@ char	*clean_remaining(char *stash)
 char	*read_file(int fd, char *stash)
 {
 	char	*buffer;
-	ssize_t	bytes_read;
+	int		bytes_read;
 
 	bytes_read = 1;
 	buffer = malloc((BUFFER_SIZE + 1) * sizeof(char));
@@ -91,7 +91,7 @@ char	*read_file(int fd, char *stash)
 	while (!ft_strchr(stash, '\n') && bytes_read != 0)
 	{
 		bytes_read = read(fd, buffer, BUFFER_SIZE);
-		if (bytes_read < 0)
+		if (bytes_read == -1)
 		{
 			free(buffer);
 			free(stash);
@@ -100,7 +100,6 @@ char	*read_file(int fd, char *stash)
 		buffer[bytes_read] = '\0';
 		stash = ft_strjoin(stash, buffer);
 	}
-	free(buffer);
 	return (stash);
 }
 
@@ -118,7 +117,7 @@ char	*get_next_line(int fd)
 	stash = clean_remaining(stash);
 	return (printed_line);
 }
-
+/*
 int main() 
 {
     int fd;
@@ -165,14 +164,8 @@ int main()
 	next_line = get_next_line(fd);
     printf("Read line_%d: %s \n", i, next_line);
 	i++;
-	next_line = get_next_line(fd);
-    printf("Read line_%d: %s \n", i, next_line);
-	i++;
-	next_line = get_next_line(fd);
-    printf("Read line_%d: %s \n", i, next_line);
-	i++;
 	
-	/*
+	
     i = 0;
 	while (i < 30) 
     {
@@ -180,9 +173,10 @@ int main()
 		next_line = get_next_line(fd);
         printf("Read line_%d: %s \n", i, next_line);
     }
-	*/
+	
     if(next_line)
         free(next_line);
     close (fd);
     return (0);
 }
+*/
