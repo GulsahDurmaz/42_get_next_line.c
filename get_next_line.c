@@ -6,7 +6,7 @@
 /*   By: gdurmaz <gdurmaz@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/10 14:02:41 by gdurmaz           #+#    #+#             */
-/*   Updated: 2023/06/21 16:27:57 by gdurmaz          ###   ########.fr       */
+/*   Updated: 2023/06/21 17:07:01 by gdurmaz          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,6 +100,7 @@ char	*read_file(int fd, char *stash)
 		buffer[bytes_read] = '\0';
 		stash = ft_strjoin(stash, buffer);
 	}
+	free (buffer);
 	return (stash);
 }
 
@@ -122,15 +123,17 @@ int main()
 {
     int fd;
     int i;
-    char *next_line;
+    char *next_line = NULL;
 
-    fd = open("test.txt", O_RDONLY);
+    fd = open("empty", O_RDONLY);
     if (fd < 0) 
     {
         printf("Failed to open the file.\n");
         return (1);
     }
+	
 	i = 1;
+	
 	next_line = get_next_line(fd);
     printf("Read line_%d: %s \n", i, next_line);
 	i++;
@@ -167,11 +170,11 @@ int main()
 	
 	
     i = 0;
-	while (i < 30) 
+	while (get_next_line(fd) != NULL)
     {
         i++;
-		next_line = get_next_line(fd);
         printf("Read line_%d: %s \n", i, next_line);
+		next_line = get_next_line(fd);
     }
 	
     if(next_line)
