@@ -6,7 +6,7 @@
 /*   By: gdurmaz <gdurmaz@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/10 14:02:41 by gdurmaz           #+#    #+#             */
-/*   Updated: 2023/06/21 17:07:01 by gdurmaz          ###   ########.fr       */
+/*   Updated: 2023/06/21 17:53:08 by gdurmaz          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,7 @@ char	*clean_remaining(char *stash)
 	if (!stash[i])
 	{
 		free (stash);
+		stash = NULL;
 		return (0);
 	}
 	remaining_text = (char *)malloc(ft_strlen(stash) - i + 1);
@@ -76,6 +77,7 @@ char	*clean_remaining(char *stash)
 		remaining_text[j++] = stash[i++];
 	remaining_text[j] = '\0';
 	free(stash);
+	stash = NULL;
 	return (remaining_text);
 }
 
@@ -83,6 +85,7 @@ char	*read_file(int fd, char *stash)
 {
 	char	*buffer;
 	int		bytes_read;
+	char	*tmp;
 
 	bytes_read = 1;
 	buffer = malloc((BUFFER_SIZE + 1) * sizeof(char));
@@ -94,13 +97,23 @@ char	*read_file(int fd, char *stash)
 		if (bytes_read == -1)
 		{
 			free(buffer);
+			buffer = NULL;
 			free(stash);
+			stash = NULL;
 			return (0);
 		}
+		else if (bytes_read == 0)
+			break;
 		buffer[bytes_read] = '\0';
-		stash = ft_strjoin(stash, buffer);
+		if (!stash)
+			stash = ft_strdup("");
+		tmp = stash;
+		stash = ft_strjoin(tmp, buffer);
+		free (tmp);
+		tmp = NULL;
 	}
 	free (buffer);
+	buffer = NULL;
 	return (stash);
 }
 
@@ -110,7 +123,11 @@ char	*get_next_line(int fd)
 	char		*printed_line;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
+	{
+		free (stash);
+		stash = NULL;
 		return (NULL);
+	}
 	stash = read_file(fd, stash);
 	if (!stash)
 		return (NULL);
@@ -136,6 +153,7 @@ int main()
 	
 	next_line = get_next_line(fd);
     printf("Read line_%d: %s \n", i, next_line);
+	
 	i++;
 	next_line = get_next_line(fd);
     printf("Read line_%d: %s \n", i, next_line);
