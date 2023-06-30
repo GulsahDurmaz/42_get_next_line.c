@@ -3,26 +3,13 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line_utils.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: gdurmaz <gdurmaz@student.42.fr>            +#+  +:+       +#+        */
+/*   By: gdurmaz <gdurmaz@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/10 14:52:16 by gdurmaz           #+#    #+#             */
-/*   Updated: 2023/06/25 19:03:50 by gdurmaz          ###   ########.fr       */
+/*   Updated: 2023/06/29 15:23:32 by gdurmaz          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 #include "get_next_line.h"
-
-size_t	ft_strlen(const char *str)
-{
-	size_t	i;
-
-	i = 0;
-	if (!str)
-		return (i);
-	while (str[i])
-		i++;
-	return (i);
-}
 
 char	*ft_strchr(char *s, int c)
 {
@@ -53,7 +40,6 @@ char	*ft_strjoin(char *line, char *buffer)
 			new[i] = line[i];
 			i++;
 		}
-	//	free(line);
 	}
 	while (buffer[j])
 	{
